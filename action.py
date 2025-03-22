@@ -6,6 +6,8 @@ import os
 
 class ComparisonABC:
     def __init__(self, external_visualize):
+        self.lower_limit = 0
+        self.upper_limit = 100
         self.settings_path = "settings.json"
         self.external_visualize = external_visualize
         if os.path.exists(self.settings_path):
@@ -17,9 +19,14 @@ class ComparisonABC:
     def visualize(self):
         self.external_visualize(self.a, self.b, self.c)
     def callback(self, a, b, c):
-        self.a, self.b, self.c = a, b, c
-        self.logic()
+        if (self.a, self.b, self.c) != (a, b, c):
+            self.a, self.b, self.c = a, b, c
+            self.logic()
     def logic(self):
+        if self.a < self.lower_limit:
+            self.a = self.lower_limit
+        if self.c > self.upper_limit:
+            self.c = self.upper_limit
         if not(self.a <= self.b and self.b <= self.c):
             if self.a > self.b:
                 if self.a > self.c:
@@ -51,15 +58,21 @@ class Action(customtkinter.CTkFrame):
         
         vcmd = (self.register(self.validate))
 
-        self.entry_A = customtkinter.CTkEntry(self, validate='all', validatecommand=(vcmd, '%P'))
+        self.entry_A = customtkinter.CTkEntry(self, 
+                                              validate='all', 
+                                              validatecommand=(vcmd, '%P'))
         self.entry_A.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
         self.entry_A.bind("<Leave>", self.getABC)
 
-        self.entry_B = customtkinter.CTkEntry(self, placeholder_text="213")
+        self.entry_B = customtkinter.CTkEntry(self, 
+                                              validate='all',
+                                              validatecommand=(vcmd, '%P'))
         self.entry_B.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
         self.entry_B.bind("<Leave>", self.getABC)
         
-        self.entry_C = customtkinter.CTkEntry(self, placeholder_text="313")
+        self.entry_C = customtkinter.CTkEntry(self, 
+                                              validate='all',
+                                              validatecommand=(vcmd, '%P'))
         self.entry_C.grid(row=1, column=3, padx=5, pady=5, sticky="nsew")
         self.entry_C.bind("<Leave>", self.getABC)
 
@@ -106,6 +119,9 @@ class Action(customtkinter.CTkFrame):
         self.slider_C.set(c)
 
     def getABC(self, args):
+        if "" in [self.entry_A.get(), self.entry_B.get(), self.entry_C.get()]:
+            self.comp_abc.visualize()
+            return
         a = [int(self.entry_A.get()), self.spinbox_A.get(), int(self.slider_A.get())]
         print(a)
         a_uniq = list(set(filter(lambda x: a.count(x) == 1, a)))
@@ -122,8 +138,7 @@ class Action(customtkinter.CTkFrame):
         c = c_uniq[0] if len(c_uniq) > 0 else c[0]
 
         self.comp_abc.callback(a, b, c)
-        pass
 
     def validate(self, P):
-        return str.isdigit(P) or P == ""
+        return str.isdigit(P) or P == "" 
 

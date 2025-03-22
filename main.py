@@ -16,6 +16,11 @@ class App(customtkinter.CTk):
 
         self.action = Action(master=self)
         self.action.grid(row=0, column=0, padx=0, pady=0,sticky="nsew")
+        
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+    def on_close(self):
+        self.action.comp_abc.__del__()
+        self.destroy()
 
 
 if __name__ == "__main__":
